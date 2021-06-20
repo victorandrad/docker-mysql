@@ -1,0 +1,9 @@
+.idea/
+.env
+
+.history
+.DS_STORE
+!/docker-persist/db/mysql/.gitkeep
+!/docker-persist/backups-mysql/.gitkeep
+/docker-persist/db/mysql/*
+/docker-persist/backups-mysql/*

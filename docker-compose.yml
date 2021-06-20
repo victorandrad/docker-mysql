@@ -1,0 +1,36 @@
+version: "3"
+services:
+
+    mysql:
+        image: mysql:5.7
+        container_name: mysql
+        user: "1000:50"
+        restart: always
+        environment:
+            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+        ports:
+            - "3306:3306"
+        volumes:
+            - "./docker-persist/db/mysql:/var/lib/mysql"
+            - ./docker-persist/backups-mysql:/dumps
+        command: --innodb-use-native-aio=0
+        networks:
+            - db_network
+        labels:
+            deck-chores.dump.command: sh -c "mysqldump -u ${MYSQL_ROOT_USER}  -p${MYSQL_ROOT_PASSWORD} --all-databases --skip-lock-tables | gzip > /dumps/backup$$(date +\%Y\%m\%d).sql.gz | find /dumps/ -mtime +10 -exec rm -rf {} \;"
+            deck-chores.dump.interval: hourly
+
+    cron:
+        image: funkyfuture/deck-chores:1
+        container_name: cron
+        restart: unless-stopped
+        networks:
+            - db_network
+        environment:
+          TIMEZONE: America/Sao_Paulo
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  db_network:
+    driver: bridge
